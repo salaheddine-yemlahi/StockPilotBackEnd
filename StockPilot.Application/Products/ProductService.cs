@@ -72,4 +72,53 @@ public class ProductService : IProductService
             MinimumStockLevel = product.MinimumStockLevel
         };
     }
+
+
+    public async Task<ProductDto?> UpdateAsync(
+    int id,
+    UpdateProductDto dto,
+    CancellationToken cancellationToken = default)
+    {
+        var existingProduct = await _repository.GetByIdAsync(id, cancellationToken);
+
+        if (existingProduct is null)
+            return null;
+
+        var sku = dto.SKU.Trim();
+
+        if (!string.Equals(existingProduct.SKU, sku, StringComparison.OrdinalIgnoreCase)
+            && await _repository.ExistsBySkuAsync(sku, cancellationToken))
+        {
+            throw new InvalidOperationException(
+                $"Un produit avec le SKU '{sku}' existe déjà.");
+        }
+
+        existingProduct.Name = dto.Name.Trim();
+        existingProduct.SKU = sku;
+        existingProduct.Description = dto.Description?.Trim();
+        existingProduct.UnitPrice = dto.UnitPrice;
+        existingProduct.QuantityInStock = dto.QuantityInStock;
+        existingProduct.MinimumStockLevel = dto.MinimumStockLevel;
+
+        await _repository.UpdateAsync(existingProduct, cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
+
+        return MapToDto(existingProduct);
+    }
+
+
+    public async Task<bool> DeleteAsync(
+    int id,
+    CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(id, cancellationToken);
+
+        if (product is null)
+            return false;
+
+        await _repository.DeleteAsync(product, cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
 }

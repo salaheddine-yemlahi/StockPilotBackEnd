@@ -59,4 +59,41 @@ public class ProductsController : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
+
+
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ProductDto>> Update(
+        int id,
+        [FromBody] UpdateProductDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var product = await _productService.UpdateAsync(
+                id, dto, cancellationToken);
+
+            if (product is null)
+                return NotFound(new { message = $"Produit {id} introuvable." });
+
+            return Ok(product);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(
+    int id,
+    CancellationToken cancellationToken)
+    {
+        var deleted = await _productService.DeleteAsync(id, cancellationToken);
+
+        if (!deleted)
+            return NotFound(new { message = $"Produit {id} introuvable." });
+
+        return NoContent();
+    }
+
 }
