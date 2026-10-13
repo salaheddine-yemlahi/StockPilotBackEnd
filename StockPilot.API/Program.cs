@@ -1,5 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using StockPilot.Infrastructure.Persistence;
+using StockPilot.Application.Products;
+using StockPilot.Application.Products.Interfaces;
+using StockPilot.Infrastructure.Repositories;
+using StockPilot.Application.Products.Interfaces;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +20,11 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<StockPilotDbContext>(options => options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

@@ -16,7 +16,7 @@ public class CreateProductDto
     [StringLength(1000)]
     public string? Description { get; set; }
 
-    [Range(typeof(decimal), "0.01", "999999999")]
+    [Range(0.01, 999999999)]
     public decimal UnitPrice { get; set; }
 
     [Range(0, int.MaxValue)]
