@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.Categories.DTOs;
 using StockPilot.Application.Categories.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 namespace StockPilot.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase

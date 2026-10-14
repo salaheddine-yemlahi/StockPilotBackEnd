@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.Products.DTOs;
 using StockPilot.Application.Products.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 namespace StockPilot.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase

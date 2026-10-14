@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.StockMovements.DTOs;
 using StockPilot.Application.StockMovements.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace StockPilot.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class StockMovementsController : ControllerBase

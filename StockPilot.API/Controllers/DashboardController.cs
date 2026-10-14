@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.Dashboard.DTOs;
 using StockPilot.Application.Dashboard.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StockPilot.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class DashboardController : ControllerBase
