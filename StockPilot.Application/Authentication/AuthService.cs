@@ -63,7 +63,23 @@ public class AuthService : IAuthService
             throw new ArgumentException(errors);
         }
 
-        return GenerateToken(user);
+        var roleResult = await _userManager.AddToRoleAsync(
+            user,
+            "Employee");
+
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+
+            var errors = string.Join(
+                " ",
+                roleResult.Errors.Select(error => error.Description));
+
+            throw new InvalidOperationException(
+                $"Impossible d'attribuer le rôle Employee : {errors}");
+        }
+
+        return await GenerateTokenAsync(user);
     }
 
     public async Task<AuthResponseDto> LoginAsync(
@@ -92,10 +108,11 @@ public class AuthService : IAuthService
                 "Adresse e-mail ou mot de passe incorrect.");
         }
 
-        return GenerateToken(user);
+        return await GenerateTokenAsync(user);
     }
 
-    private AuthResponseDto GenerateToken(ApplicationUser user)
+    private async Task<AuthResponseDto> GenerateTokenAsync(
+        ApplicationUser user)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
 
@@ -134,6 +151,11 @@ public class AuthService : IAuthService
             new(ClaimTypes.Name, user.UserName ?? user.Email!),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        claims.AddRange(
+            roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var signingKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(secretKey));

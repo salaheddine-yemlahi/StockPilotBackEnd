@@ -1,8 +1,8 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.Dashboard.DTOs;
 using StockPilot.Application.Dashboard.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 
 namespace StockPilot.API.Controllers;
 
@@ -22,7 +22,9 @@ public class DashboardController : ControllerBase
     public async Task<ActionResult<DashboardDto>> GetSummary(
         CancellationToken cancellationToken)
     {
-        var summary = await _service.GetSummaryAsync(cancellationToken);
+        var summary = await _service.GetSummaryAsync(
+            cancellationToken);
+
         return Ok(summary);
     }
 }

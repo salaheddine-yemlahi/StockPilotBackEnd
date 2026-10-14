@@ -1,8 +1,9 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.Products.DTOs;
 using StockPilot.Application.Products.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+
 namespace StockPilot.API.Controllers;
 
 [Authorize]
@@ -65,6 +66,7 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(
         [FromBody] CreateProductDto dto,
@@ -86,6 +88,7 @@ public class ProductsController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProductDto>> Update(
         int id,
@@ -113,6 +116,7 @@ public class ProductsController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(
         int id,

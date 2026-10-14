@@ -17,7 +17,8 @@ using StockPilot.Domain.Entities.Identity;
 using System.Text;
 using StockPilot.Application.Authentication.Interfaces;
 using StockPilot.Infrastructure.Authentication;
-
+using Microsoft.AspNetCore.Identity;
+using StockPilot.Infrastructure.Authentication;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +50,7 @@ builder.Services
         options.Password.RequireLowercase = true;
         options.Password.RequireNonAlphanumeric = true;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StockPilotDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -99,6 +101,8 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
+
+await IdentitySeeder.SeedRolesAsync(app.Services);
 
 // Global exception handling
 app.UseExceptionHandler();

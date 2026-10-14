@@ -1,8 +1,9 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.Categories.DTOs;
 using StockPilot.Application.Categories.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+
 namespace StockPilot.API.Controllers;
 
 [Authorize]
@@ -46,6 +47,7 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<CategoryDto>> Create(
         [FromBody] CreateCategoryDto dto,
@@ -67,6 +69,7 @@ public class CategoriesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<CategoryDto>> Update(
         int id,
@@ -94,6 +97,7 @@ public class CategoriesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(
         int id,

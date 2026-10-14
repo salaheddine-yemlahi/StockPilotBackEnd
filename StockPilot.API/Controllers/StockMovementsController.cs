@@ -1,9 +1,8 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockPilot.Application.StockMovements.DTOs;
 using StockPilot.Application.StockMovements.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-
 
 namespace StockPilot.API.Controllers;
 
@@ -24,6 +23,7 @@ public class StockMovementsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var movements = await _service.GetAllAsync(cancellationToken);
+
         return Ok(movements);
     }
 
