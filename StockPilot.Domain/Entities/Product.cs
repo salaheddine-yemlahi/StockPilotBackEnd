@@ -1,4 +1,6 @@
-﻿namespace StockPilot.Domain.Entities;
+﻿
+namespace StockPilot.Domain.Entities;
+
 public class Product
 {
     public int Id { get; set; }
@@ -16,4 +18,9 @@ public class Product
     public int MinimumStockLevel { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Category relationship
+    public int? CategoryId { get; set; }
+
+    public Category? Category { get; set; }
 }

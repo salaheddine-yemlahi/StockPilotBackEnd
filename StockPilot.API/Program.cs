@@ -4,6 +4,8 @@ using StockPilot.Application.Products;
 using StockPilot.Application.Products.Interfaces;
 using StockPilot.Infrastructure.Persistence;
 using StockPilot.Infrastructure.Repositories;
+using StockPilot.Application.Categories;
+using StockPilot.Application.Categories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +28,8 @@ builder.Services.AddDbContext<StockPilotDbContext>(options =>
 // Dependency Injection
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 var app = builder.Build();
 
