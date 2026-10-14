@@ -16,15 +16,24 @@ public interface IProductRepository
         string sku,
         CancellationToken cancellationToken = default);
 
+    Task<(List<Product> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(
+        Product product,
+        CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(
+        Product product,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteAsync(
         Product product,
         CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(
         CancellationToken cancellationToken = default);
-
-    Task UpdateAsync(
-        Product product, CancellationToken cancellationToken = default);
-
-    Task DeleteAsync(Product product, CancellationToken cancellationToken = default);
 }

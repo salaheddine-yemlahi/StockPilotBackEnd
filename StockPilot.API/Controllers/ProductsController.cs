@@ -16,30 +16,54 @@ public class ProductsController : ControllerBase
         _productService = productService;
     }
 
-    // GET: api/products
     [HttpGet]
-    public async Task<ActionResult<List<ProductDto>>> GetAll(
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<ProductDto>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        CancellationToken cancellationToken = default)
     {
-        var products = await _productService.GetAllAsync(cancellationToken);
-        return Ok(products);
+        if (page < 1)
+        {
+            return BadRequest(new
+            {
+                message = "Le numéro de page doit être supérieur ou égal à 1."
+            });
+        }
+
+        if (pageSize < 1 || pageSize > 100)
+        {
+            return BadRequest(new
+            {
+                message = "La taille de page doit être comprise entre 1 et 100."
+            });
+        }
+
+        var result = await _productService.GetPagedAsync(
+            page, pageSize, search, cancellationToken);
+
+        return Ok(result);
     }
 
-    // GET: api/products/5
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetById(
         int id,
         CancellationToken cancellationToken)
     {
-        var product = await _productService.GetByIdAsync(id, cancellationToken);
+        var product = await _productService.GetByIdAsync(
+            id, cancellationToken);
 
         if (product is null)
-            return NotFound(new { message = $"Produit {id} introuvable." });
+        {
+            return NotFound(new
+            {
+                message = $"Produit {id} introuvable."
+            });
+        }
 
         return Ok(product);
     }
 
-    // POST: api/products
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(
         [FromBody] CreateProductDto dto,
@@ -47,7 +71,8 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var product = await _productService.CreateAsync(dto, cancellationToken);
+            var product = await _productService.CreateAsync(
+                dto, cancellationToken);
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -59,7 +84,6 @@ public class ProductsController : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
-
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProductDto>> Update(
@@ -73,7 +97,12 @@ public class ProductsController : ControllerBase
                 id, dto, cancellationToken);
 
             if (product is null)
-                return NotFound(new { message = $"Produit {id} introuvable." });
+            {
+                return NotFound(new
+                {
+                    message = $"Produit {id} introuvable."
+                });
+            }
 
             return Ok(product);
         }
@@ -85,15 +114,20 @@ public class ProductsController : ControllerBase
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(
-    int id,
-    CancellationToken cancellationToken)
+        int id,
+        CancellationToken cancellationToken)
     {
-        var deleted = await _productService.DeleteAsync(id, cancellationToken);
+        var deleted = await _productService.DeleteAsync(
+            id, cancellationToken);
 
         if (!deleted)
-            return NotFound(new { message = $"Produit {id} introuvable." });
+        {
+            return NotFound(new
+            {
+                message = $"Produit {id} introuvable."
+            });
+        }
 
         return NoContent();
     }
-
 }

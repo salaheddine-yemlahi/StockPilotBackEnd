@@ -41,6 +41,37 @@ public class ProductRepository : IProductRepository
             .AnyAsync(p => p.SKU == sku, cancellationToken);
     }
 
+    public async Task<(List<Product> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Products.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+
+            query = query.Where(p =>
+                p.Name.Contains(term) ||
+                p.SKU.Contains(term) ||
+                (p.Description != null &&
+                 p.Description.Contains(term)));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(p => p.Name)
+            .ThenBy(p => p.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(
         Product product,
         CancellationToken cancellationToken = default)
@@ -48,27 +79,25 @@ public class ProductRepository : IProductRepository
         await _context.Products.AddAsync(product, cancellationToken);
     }
 
-    public async Task SaveChangesAsync(
-        CancellationToken cancellationToken = default)
-    {
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
     public Task UpdateAsync(
-    Product product,
-    CancellationToken cancellationToken = default)
+        Product product,
+        CancellationToken cancellationToken = default)
     {
         _context.Products.Update(product);
         return Task.CompletedTask;
     }
 
-
     public Task DeleteAsync(
-    Product product,
-    CancellationToken cancellationToken = default)
+        Product product,
+        CancellationToken cancellationToken = default)
     {
         _context.Products.Remove(product);
         return Task.CompletedTask;
     }
 
+    public async Task SaveChangesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

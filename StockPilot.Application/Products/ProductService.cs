@@ -18,7 +18,6 @@ public class ProductService : IProductService
         CancellationToken cancellationToken = default)
     {
         var products = await _repository.GetAllAsync(cancellationToken);
-
         return products.Select(MapToDto).ToList();
     }
 
@@ -29,6 +28,27 @@ public class ProductService : IProductService
         var product = await _repository.GetByIdAsync(id, cancellationToken);
 
         return product is null ? null : MapToDto(product);
+    }
+
+    public async Task<PagedResultDto<ProductDto>> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
+        CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var (products, totalCount) = await _repository.GetPagedAsync(
+            page, pageSize, search, cancellationToken);
+
+        return new PagedResultDto<ProductDto>
+        {
+            Items = products.Select(MapToDto).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<ProductDto> CreateAsync(
@@ -59,6 +79,54 @@ public class ProductService : IProductService
         return MapToDto(product);
     }
 
+    public async Task<ProductDto?> UpdateAsync(
+        int id,
+        UpdateProductDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(id, cancellationToken);
+
+        if (product is null)
+            return null;
+
+        var sku = dto.SKU.Trim();
+
+        if (!string.Equals(
+                product.SKU, sku, StringComparison.OrdinalIgnoreCase) &&
+            await _repository.ExistsBySkuAsync(sku, cancellationToken))
+        {
+            throw new InvalidOperationException(
+                $"Un produit avec le SKU '{sku}' existe déjà.");
+        }
+
+        product.Name = dto.Name.Trim();
+        product.SKU = sku;
+        product.Description = dto.Description?.Trim();
+        product.UnitPrice = dto.UnitPrice;
+        product.QuantityInStock = dto.QuantityInStock;
+        product.MinimumStockLevel = dto.MinimumStockLevel;
+
+        await _repository.UpdateAsync(product, cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
+
+        return MapToDto(product);
+    }
+
+    public async Task<bool> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(id, cancellationToken);
+
+        if (product is null)
+            return false;
+
+        await _repository.DeleteAsync(product, cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
     private static ProductDto MapToDto(Product product)
     {
         return new ProductDto
@@ -71,54 +139,5 @@ public class ProductService : IProductService
             QuantityInStock = product.QuantityInStock,
             MinimumStockLevel = product.MinimumStockLevel
         };
-    }
-
-
-    public async Task<ProductDto?> UpdateAsync(
-    int id,
-    UpdateProductDto dto,
-    CancellationToken cancellationToken = default)
-    {
-        var existingProduct = await _repository.GetByIdAsync(id, cancellationToken);
-
-        if (existingProduct is null)
-            return null;
-
-        var sku = dto.SKU.Trim();
-
-        if (!string.Equals(existingProduct.SKU, sku, StringComparison.OrdinalIgnoreCase)
-            && await _repository.ExistsBySkuAsync(sku, cancellationToken))
-        {
-            throw new InvalidOperationException(
-                $"Un produit avec le SKU '{sku}' existe déjà.");
-        }
-
-        existingProduct.Name = dto.Name.Trim();
-        existingProduct.SKU = sku;
-        existingProduct.Description = dto.Description?.Trim();
-        existingProduct.UnitPrice = dto.UnitPrice;
-        existingProduct.QuantityInStock = dto.QuantityInStock;
-        existingProduct.MinimumStockLevel = dto.MinimumStockLevel;
-
-        await _repository.UpdateAsync(existingProduct, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
-
-        return MapToDto(existingProduct);
-    }
-
-
-    public async Task<bool> DeleteAsync(
-    int id,
-    CancellationToken cancellationToken = default)
-    {
-        var product = await _repository.GetByIdAsync(id, cancellationToken);
-
-        if (product is null)
-            return false;
-
-        await _repository.DeleteAsync(product, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
-
-        return true;
     }
 }

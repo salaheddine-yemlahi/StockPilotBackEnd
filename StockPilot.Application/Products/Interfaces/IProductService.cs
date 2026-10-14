@@ -12,6 +12,12 @@ public interface IProductService
         int id,
         CancellationToken cancellationToken = default);
 
+    Task<PagedResultDto<ProductDto>> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
+        CancellationToken cancellationToken = default);
+
     Task<ProductDto> CreateAsync(
         CreateProductDto dto,
         CancellationToken cancellationToken = default);
@@ -21,8 +27,7 @@ public interface IProductService
         UpdateProductDto dto,
         CancellationToken cancellationToken = default);
 
-
     Task<bool> DeleteAsync(
-        int id, 
+        int id,
         CancellationToken cancellationToken = default);
 }

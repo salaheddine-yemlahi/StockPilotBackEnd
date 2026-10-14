@@ -1,5 +1,4 @@
-﻿
-using StockPilot.Application.Products;
+﻿using StockPilot.Application.Products;
 using StockPilot.Application.Products.DTOs;
 using StockPilot.Application.Products.Interfaces;
 using StockPilot.Domain.Entities;
@@ -20,7 +19,6 @@ public class ProductServiceTests
     [Fact]
     public async Task CreateAsync_WithValidProduct_ReturnsCreatedProduct()
     {
-        // Arrange
         var dto = new CreateProductDto
         {
             Name = "Clavier Logitech",
@@ -31,10 +29,8 @@ public class ProductServiceTests
             MinimumStockLevel = 5
         };
 
-        // Act
         var result = await _service.CreateAsync(dto);
 
-        // Assert
         Assert.Equal(1, result.Id);
         Assert.Equal("Clavier Logitech", result.Name);
         Assert.Equal("CLAV-001", result.SKU);
@@ -45,7 +41,6 @@ public class ProductServiceTests
     [Fact]
     public async Task CreateAsync_WithDuplicateSku_ThrowsInvalidOperationException()
     {
-        // Arrange
         await _service.CreateAsync(new CreateProductDto
         {
             Name = "Premier produit",
@@ -64,7 +59,6 @@ public class ProductServiceTests
             MinimumStockLevel = 2
         };
 
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.CreateAsync(duplicateDto));
 
@@ -74,7 +68,6 @@ public class ProductServiceTests
     [Fact]
     public async Task UpdateAsync_WithExistingProduct_UpdatesProduct()
     {
-        // Arrange
         var created = await _service.CreateAsync(new CreateProductDto
         {
             Name = "Clavier",
@@ -94,10 +87,8 @@ public class ProductServiceTests
             MinimumStockLevel = 3
         };
 
-        // Act
         var result = await _service.UpdateAsync(created.Id, updateDto);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal("Clavier Logitech Pro", result.Name);
         Assert.Equal(59.99m, result.UnitPrice);
@@ -107,7 +98,6 @@ public class ProductServiceTests
     [Fact]
     public async Task UpdateAsync_WithUnknownId_ReturnsNull()
     {
-        // Arrange
         var dto = new UpdateProductDto
         {
             Name = "Produit",
@@ -117,17 +107,14 @@ public class ProductServiceTests
             MinimumStockLevel = 1
         };
 
-        // Act
         var result = await _service.UpdateAsync(999, dto);
 
-        // Assert
         Assert.Null(result);
     }
 
     [Fact]
     public async Task DeleteAsync_WithExistingProduct_DeletesProduct()
     {
-        // Arrange
         var created = await _service.CreateAsync(new CreateProductDto
         {
             Name = "Souris",
@@ -137,10 +124,8 @@ public class ProductServiceTests
             MinimumStockLevel = 2
         });
 
-        // Act
         var result = await _service.DeleteAsync(created.Id);
 
-        // Assert
         Assert.True(result);
         Assert.Empty(_repository.Products);
     }
@@ -148,11 +133,52 @@ public class ProductServiceTests
     [Fact]
     public async Task DeleteAsync_WithUnknownId_ReturnsFalse()
     {
-        // Act
         var result = await _service.DeleteAsync(999);
 
-        // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GetPagedAsync_ReturnsCorrectPageAndSearchResults()
+    {
+        await _service.CreateAsync(new CreateProductDto
+        {
+            Name = "Clavier Logitech",
+            SKU = "CLAV-001",
+            UnitPrice = 49.99m,
+            QuantityInStock = 20,
+            MinimumStockLevel = 5
+        });
+
+        await _service.CreateAsync(new CreateProductDto
+        {
+            Name = "Souris Logitech",
+            SKU = "SOURIS-001",
+            UnitPrice = 25m,
+            QuantityInStock = 10,
+            MinimumStockLevel = 2
+        });
+
+        await _service.CreateAsync(new CreateProductDto
+        {
+            Name = "Écran Dell",
+            SKU = "ECRAN-001",
+            UnitPrice = 199m,
+            QuantityInStock = 8,
+            MinimumStockLevel = 2
+        });
+
+        var result = await _service.GetPagedAsync(
+            page: 1,
+            pageSize: 1,
+            search: "Logitech");
+
+        Assert.Equal(1, result.Page);
+        Assert.Equal(1, result.PageSize);
+        Assert.Equal(2, result.TotalCount);
+        Assert.Equal(2, result.TotalPages);
+        Assert.Single(result.Items);
+        Assert.Contains("Logitech", result.Items[0].Name);
     }
 
     private sealed class FakeProductRepository : IProductRepository
@@ -162,8 +188,45 @@ public class ProductServiceTests
         public Task<List<Product>> GetAllAsync(
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(
-                Products.OrderBy(p => p.Name).ToList());
+            var products = Products
+                .OrderBy(p => p.Name)
+                .ToList();
+
+            return Task.FromResult(products);
+        }
+
+        public Task<(List<Product> Items, int TotalCount)> GetPagedAsync(
+            int page,
+            int pageSize,
+            string? search,
+            CancellationToken cancellationToken = default)
+        {
+            IEnumerable<Product> query = Products;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+
+                query = query.Where(p =>
+                    p.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    p.SKU.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (p.Description != null &&
+                     p.Description.Contains(term, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            var filteredProducts = query
+                .OrderBy(p => p.Name)
+                .ThenBy(p => p.Id)
+                .ToList();
+
+            var totalCount = filteredProducts.Count;
+
+            var items = filteredProducts
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Task.FromResult((items, totalCount));
         }
 
         public Task<Product?> GetByIdAsync(
@@ -178,11 +241,8 @@ public class ProductServiceTests
             string sku,
             CancellationToken cancellationToken = default)
         {
-            var exists = Products.Any(
-                p => string.Equals(
-                    p.SKU,
-                    sku,
-                    StringComparison.OrdinalIgnoreCase));
+            var exists = Products.Any(p =>
+                string.Equals(p.SKU, sku, StringComparison.OrdinalIgnoreCase));
 
             return Task.FromResult(exists);
         }
