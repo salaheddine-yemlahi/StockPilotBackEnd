@@ -19,6 +19,8 @@ public class Product
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+
     // Category relationship
     public int? CategoryId { get; set; }
 

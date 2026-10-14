@@ -6,6 +6,9 @@ using StockPilot.Infrastructure.Persistence;
 using StockPilot.Infrastructure.Repositories;
 using StockPilot.Application.Categories;
 using StockPilot.Application.Categories.Interfaces;
+using StockPilot.Application.StockMovements;
+using StockPilot.Application.StockMovements.Interfaces;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,8 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
+builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 
 var app = builder.Build();
 
