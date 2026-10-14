@@ -8,7 +8,8 @@ using StockPilot.Application.Categories;
 using StockPilot.Application.Categories.Interfaces;
 using StockPilot.Application.StockMovements;
 using StockPilot.Application.StockMovements.Interfaces;
-
+using StockPilot.Application.Dashboard;
+using StockPilot.Application.Dashboard.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 
