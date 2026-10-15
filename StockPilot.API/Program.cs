@@ -17,8 +17,6 @@ using StockPilot.Domain.Entities.Identity;
 using System.Text;
 using StockPilot.Application.Authentication.Interfaces;
 using StockPilot.Infrastructure.Authentication;
-using Microsoft.AspNetCore.Identity;
-using StockPilot.Infrastructure.Authentication;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +34,7 @@ builder.Services.AddProblemDetails();
 
 // Database
 builder.Services.AddDbContext<StockPilotDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services
